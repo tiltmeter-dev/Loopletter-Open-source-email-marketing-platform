@@ -12,6 +12,8 @@ export interface StripeSubscription {
             price: {
                 id: string;
             };
+            current_period_start?: number;
+            current_period_end?: number;
         }>;
     };
     metadata: {
@@ -58,8 +60,8 @@ export function convertStripeSubscription(subscription: any): StripeSubscription
         id: subscription.id,
         customer: subscription.customer as string,
         status: subscription.status,
-        current_period_start: subscription.current_period_start || Math.floor(Date.now() / 1000),
-        current_period_end: subscription.current_period_end || Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
+        current_period_start: subscription.current_period_start || subscription.items?.data?.[0]?.current_period_start || Math.floor(Date.now() / 1000),
+        current_period_end: subscription.current_period_end || subscription.items?.data?.[0]?.current_period_end || Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
         cancel_at_period_end: subscription.cancel_at_period_end || false,
         canceled_at: subscription.canceled_at,
         items: subscription.items,
