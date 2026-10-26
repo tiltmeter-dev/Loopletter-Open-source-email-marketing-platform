@@ -99,6 +99,11 @@ export async function POST(req: NextRequest) {
                             .select('subscription_plan')
                             .eq('id', artistId)
                             .single();
+                        const periodEnd = (subscription as {
+                            current_period_end?: number;
+                        }).current_period_end ?? (subscription.items?.data?.[0] as {
+                            current_period_end?: number;
+                        } | undefined)?.current_period_end;
                         if (artist && artist.subscription_plan !== 'independent') {
                             console.log('Fixing artist subscription plan:', artist.subscription_plan);
                             await supabaseAdmin
@@ -106,12 +111,8 @@ export async function POST(req: NextRequest) {
                                 .update({
                                 subscription_plan: 'independent',
                                 subscription_status: 'active',
-                                subscription_current_period_end: (subscription && typeof subscription === 'object' && 'current_period_end' in subscription && typeof (subscription as {
-                                    current_period_end?: number;
-                                }).current_period_end === 'number')
-                                    ? new Date((subscription as {
-                                        current_period_end: number;
-                                    }).current_period_end * 1000).toISOString()
+                                subscription_current_period_end: (typeof periodEnd === 'number')
+                                    ? new Date(periodEnd * 1000).toISOString()
                                     : null,
                                 stripe_customer_id: session.customer as string,
                                 stripe_subscription_id: session.subscription as string,

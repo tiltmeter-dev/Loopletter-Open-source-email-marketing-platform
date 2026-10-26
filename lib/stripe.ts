@@ -119,6 +119,7 @@ interface StripeSubscription {
             price?: {
                 id?: string;
             };
+            current_period_end?: number;
         }>;
     };
     status?: string;
@@ -150,10 +151,11 @@ export function getPlanDetailsFromSubscription(subscription: unknown): {
     else if (priceId.includes('label')) {
         plan = 'label';
     }
+    const periodEnd = subscription.current_period_end ?? subscription.items?.data?.[0]?.current_period_end;
     return {
         plan,
         status: subscription.status || 'active',
-        currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : '',
+        currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000).toISOString() : '',
         cancelAtPeriodEnd: !!subscription.cancel_at_period_end,
     };
 }
